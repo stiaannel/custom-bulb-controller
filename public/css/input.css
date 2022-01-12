@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+button.spectrum {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 0, 0, 0.75) 0%,
+    rgba(255, 159, 0, 0.75) 14.28%,
+    rgba(248, 255, 0, 0.75) 28.86%,
+    rgba(0, 255, 45, 0.75) 42.84%,
+    rgba(0, 189, 255, 0.75) 57.12%,
+    rgba(154, 0, 255, 0.75) 71.4%,
+    rgba(255, 0, 187, 0.75) 85.68%,
+    rgba(255, 0, 0, 0.75) 100%
+  );
+}
+
+
+#main {
+  -webkit-app-region: drag;
+}
+
+#closer {
+  -webkit-app-region: no-drag;
+}
