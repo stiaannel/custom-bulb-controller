@@ -1,13 +1,13 @@
 {
   "name": "tplink-custom-integration-app",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "Just a side project for fun to control my smartbulbs :D",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "dev": "electromon .",
     "tw:watch": "npx tailwindcss -i ./public/css/input.css -o ./public/css/output.css --watch",
-    "build": "electron-builder -w --x64",
+    "build": "cross-env GH_TOKEN=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 electron-builder -w --x64 -p=always",
     "bump:patch": "npm version patch",
     "bump:minor": "npm version minor",
     "bump:major": "npm version major"
@@ -22,11 +22,27 @@
     "tplink-smarthome-api": "^3.3.0"
   },
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "electromon": "^1.0.10",
     "electron": "^16.0.6",
     "electron-packager": "^15.4.0"
   },
   "build": {
-    "productName": "TPLink Custom Integration App"
-  }
+    "productName": "TPLink Custom Integration App",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "stiaannel",
+        "repo": "tplink-smarthome-api-app"
+      }
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stiaannel/tplink-smarthome-api-app.git"
+  },
+  "bugs": {
+    "url": "https://github.com/stiaannel/tplink-smarthome-api-app/issues"
+  },
+  "homepage": "https://github.com/stiaannel/tplink-smarthome-api-app#readme"
 }
