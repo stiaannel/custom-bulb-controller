@@ -1,0 +1,1 @@
+Get fireplace and candlelight working, maybe migrate them into a select? 

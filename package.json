@@ -7,7 +7,7 @@
     "start": "electron .",
     "dev": "electromon .",
     "tw:watch": "npx tailwindcss -i ./public/css/input.css -o ./public/css/output.css --watch",
-    "build": "cross-env GH_TOKEN=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 electron-builder -w --x64 -p=always",
+    "build": "cross-env GH_TOKEN=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 electron-builder -w --x64 -p=always",
     "bump:patch": "npm version patch",
     "bump:minor": "npm version minor",
     "bump:major": "npm version major"
@@ -19,7 +19,7 @@
     "autoprefixer": "^10.4.2",
     "postcss": "^8.4.5",
     "tailwindcss": "^3.0.13",
-    "tplink-smarthome-api": "^3.3.0"
+    "tplink-smarthome-api": "^4.2.0"
   },
   "devDependencies": {
     "cross-env": "^7.0.3",

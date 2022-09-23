@@ -1,6 +1,4 @@
 const {ipcRenderer} = require('electron');
-// const toastr = require('toastr');
-// const { content } = require('tailwindcss/defaultTheme');
 let devices = [];
 
 const content = document.getElementById('content');
@@ -11,13 +9,12 @@ loaderText
 ipcRenderer.on('devices_found', (event, data) => {
   console.log(data);
   devices.push(data);
-  // toastr.success("New Device Found!", `${data.name} On IP: ${data.ip}`)
   select = document.getElementById('device')
   var opt = document.createElement('option');
   opt.value = data.ip;
   opt.innerHTML = `${data.name}@${data.ip}`;
   select.appendChild(opt);
-  toggleSwitch(data.state.on_off);
+  document.getElementById('powerToggle').checked = data.state.on_off
   document.getElementById("brightness").value = data.state.brightness;
   loader.classList.add("hidden")
   content.classList.remove("hidden");
@@ -31,7 +28,6 @@ ipcRenderer.on('version', (event, data) => {
   });
 });
 
-
 document.getElementById('closer').addEventListener('click', () => {
   ipcRenderer.send('close');
 });
@@ -41,22 +37,33 @@ document.getElementById('spectrum').addEventListener('click', () => {
   ipcRenderer.send('spectrum', createPayload(ip));
 })
 
-document.getElementById('off').addEventListener('click', () => {
+document.getElementById('powerToggle').addEventListener('click', () => {
+  state = document.getElementById('powerToggle').checked
   ip = document.getElementById("device").value
-  ipcRenderer.send('light_off', createPayload(ip));
-  toggleSwitch(0);
+  ipcRenderer.send('powerToggle', createPayload(state));
 })
 
-document.getElementById('on').addEventListener('click', () => {
-  ip = document.getElementById("device").value
-  ipcRenderer.send('light_on', createPayload(ip));
-  toggleSwitch(1);
-})
+// document.getElementById('fireplace').addEventListener('click', () => {
+//   ip = document.getElementById("device").value
+//   ipcRenderer.send('fireplace', createPayload(ip));
+// })
+
+// document.getElementById('candlelight').addEventListener('click', () => {
+//   ip = document.getElementById("device").value
+//   ipcRenderer.send('candlelight', createPayload(ip));
+// })
+
 
 document.getElementById("brightness").addEventListener('change', () => {
   ip = document.getElementById("device").value
-  ipcRenderer.send('brughtness_update', createPayload(ip));
+  ipcRenderer.send('brightness_update', createPayload(ip));
 })
+
+document.getElementById("temp").addEventListener('change', () => {
+  ip = document.getElementById("device").value
+  ipcRenderer.send('brightness_update', createPayload(ip));
+})
+
 
 ipcRenderer.on('color_changed', (event, data) => {
   if (data < 360) {
@@ -70,31 +77,16 @@ ipcRenderer.on('color_changed', (event, data) => {
   }
 });
 
-function toggleSwitch(a) {
-  switch(Boolean(a)) {
-    case true: 
-      document.getElementById('on').classList.remove('bg-green-500');
-      document.getElementById('on').classList.add('bg-green-500');
-      document.getElementById('off').classList.add('bg-red-900');
-      document.getElementById('off').classList.remove('bg-red-500');
-      break;
-    case false: 
-      document.getElementById('on').classList.remove('bg-green-500');
-      document.getElementById('on').classList.add('bg-green-900');
-      document.getElementById('off').classList.add('bg-red-500');
-      document.getElementById('off').classList.remove('bg-red-900');
-  }
-}
-
-function createPayload() {
+function createPayload(powerState) {
   return {
     ip: document.getElementById("device").value,
+    state: powerState,
     payload: {
       on_off: 1, 
       brightness: parseInt(document.getElementById("brightness").value),
       hue: 0, //0-360
       saturation: 0, // 0-100
-      color_temp: 6000 // Warm2640 Cold9000 (6000 = white)
+      color_temp: parseInt(document.getElementById("temp").value) // Warm2640 Cold9000 (6000 = white)
     }
   }
 }
