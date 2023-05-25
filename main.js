@@ -4,7 +4,7 @@ const { version } = require('./package.json');
 const client = new Client();
 // var robot = require("robotjs");
 
-let bak = 0, win, flag, candle, fire;
+let win, flag, candle, fire, spectrum_flg = false, spec_i = 0;
 
 function createWindow () {
   win = new BrowserWindow({
@@ -41,12 +41,30 @@ app.whenReady().then(() => {
   }, 5000);
 });
 
+function handleComment(level, message) {
+  const levels = {
+    info: '[INFO]',
+    debug: '[DEBUG]',
+    warning: '[WARNING]'
+  };
+
+  const lowerLevel = level.toLowerCase();
+
+  if (levels.hasOwnProperty(lowerLevel)) {
+    console.log(`${levels[lowerLevel]} ${message}`);
+  } else {
+    console.log(`[UNKNOWN LEVEL] ${message}`);
+  }
+}
+
 ipcMain.on('powerToggle', (event, args) => {
   office = client.getDevice({ host: args.ip }).then((device) => {
     state = args.state
     device.setPowerState(state);
   });
 });
+
+
 
 ipcMain.on('monitor', (event, args) => {
   flag = false
@@ -70,70 +88,86 @@ ipcMain.on('monitor', (event, args) => {
   // console.log("#" + hex + " at x:" + mouse.x + " y:" + mouse.y);
 });
 
-ipcMain.on('candlelight', (event, args) => {
-  office = client.getDevice({ host: args.ip }).then((device) => {
-    let payload = {
-      on_off: true, // false to turn off
-      brightness: 100,
-      hue:0, //0-360
-      saturation: 100, // 0-100
-      color_temp: 2640, // 2640 - 9000 Red -- Blue 6000 = Hosp white // ! SHOULD BE 0 IF YOU WANT COLOR OUTPUT!
-      transition_period: 500
-    }
-    device.lighting.setLightState(payload)
-  });
-});
-
-ipcMain.on('fireplace', (event, args) => {
-  office = client.getDevice({ host: args.ip }).then((device) => {
-    device.setPowerState(true);
-    let interval = Math.random(100, 5000);
-    let payload = {
-      on_off: true, // false to turn off
-      brightness: 100,
-      hue: i * 2, //0-360
-      saturation: 100, // 0-100
-      color_temp: 0, // 2640 - 9000 Red -- Blue 6000 = Hosp white // ! SHOULD BE 0 IF YOU WANT COLOR OUTPUT!
-      transition_period: 500
-    }
-    device.lighting.setLightState(payload).then(
-      (out) => {
-        console.count(out);
-        bak++
-      }
-    );
-  });
-});
-
 ipcMain.on('break', (event, args) => {
   flag = true
 });
 
-ipcMain.on('spectrum', (event, args) => {
-  office = client.getDevice({ host: args.ip }).then((device) => {
-    device.setPowerState(true);
-    for (let i = 0; i <= 180; i++) {
-      if (flag) { break; }
-      console.log('running')
-      // if (i = 0) bak = 0;
-      let payload = {
-        on_off: true, // false to turn off
-        brightness: 100,
-        hue: i * 2, //0-360
-        saturation: 100, // 0-100
-        color_temp: 0, // 2640 - 9000 Red -- Blue 6000 = Hosp white // ! SHOULD BE 0 IF YOU WANT COLOR OUTPUT!
-        transition_period: 500
-      }
-      device.lighting.setLightState(payload).then(
-        (out) => {
-          console.count(out);
-          bak++
-          win.webContents.send('color_changed', bak * 2)
+// ipcMain.on('spectrum', (event, args) => {
+//   // Select the correct device
+//   office = client.getDevice({ host: args.ip }).then((device) => {
+//     device.setPowerState(true); // Ensure the device is on
+
+//     // Spectrum Cycle
+//     for (let i = 0; i <= 180; i++) {
+//       console.log('running')
+//       // if (i = 0) bak = 0;
+//       let payload = {
+//         on_off: true, // false to turn off
+//         brightness: 100,
+//         hue: i * 2, //0-360 INDEX is the hue payload for the bulb
+//         saturation: 100, // 0-100
+//         color_temp: 0, // 2640 - 9000 Red -- Blue 6000 = Hosp white // ! SHOULD BE 0 IF YOU WANT COLOR OUTPUT!
+//         transition_period: 100
+//       }
+//       device.lighting.setLightState(payload).then(
+//         (out) => {
+//           console.count(out);
+//           bak++
+//           win.webContents.send('color_changed', bak * 2)
+//         }
+//       );
+//     }
+//   });
+// });
+
+function runSpectrumCycle(device) {
+
+  function setLightStateAndAdvance() {
+    if (!spectrum_flg) return; // Exit the loop if spectrum function is stopped
+
+    let payload = {
+      on_off: true,
+      brightness: 100,
+      hue: spec_i,
+      saturation: 100,
+      color_temp: 0,
+      transition_period: 200
+    };
+
+    device.lighting.setLightState(payload).then((out) => {
+      win.webContents.send('color_changed', spec_i);
+
+      if (out === true) {
+        // Advance to the next iteration if the response is "true"
+        spec_i++;
+        if (spec_i > 360) {
+          spec_i = 0; // Reset spec_i to 0 if it goes over 360
         }
-      );
-      setTimeout(() => {
-        console.log('arbitrary delay');
-      }, 500)
+        setLightStateAndAdvance();
+      
+      } else {
+        spectrum_flg = false; // Set the flag to stop the spectrum function
+      }
+    });
+  }
+
+  setLightStateAndAdvance(); // Start the loop
+}
+
+
+ipcMain.on('spectrum', (event, args) => {
+  // Select the correct device
+  handleComment('info', `Spectrum cycle called on ${args.ip}`);
+  office = client.getDevice({ host: args.ip }).then((device) => {
+    device.setPowerState(true); // Ensure the device is on
+
+    if (!spectrum_flg) {
+      handleComment('info', `Spectrum cycle started on ${args.ip}`);
+      spectrum_flg = true;
+      runSpectrumCycle(device);
+    } else {
+      spectrum_flg = false;
+      handleComment('info', `Spectrum cycle stopped on ${args.ip}`);
     }
   });
 });

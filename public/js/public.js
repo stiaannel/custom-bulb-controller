@@ -5,6 +5,7 @@ const content = document.getElementById('content');
 const loader = document.getElementById('loader');
 const loaderText = document.getElementById('loaderText');
 loaderText
+let timeoutId;
 
 ipcRenderer.on('devices_found', (event, data) => {
   console.log(data);
@@ -64,17 +65,26 @@ document.getElementById("temp").addEventListener('change', () => {
   ipcRenderer.send('brightness_update', createPayload(ip));
 })
 
-
 ipcRenderer.on('color_changed', (event, data) => {
-  if (data < 360) {
+  clearTimeout(timeoutId); // Clear the previous timeout
+
+  if (data <= 360) {
     document.querySelector("#indicator").classList.remove("hidden");
-    document.querySelector("#indicator").style.backgroundColor = `hsl(${data}, 100%, 50%)`
+    document.querySelector("#indicator").style.backgroundColor = `hsl(${data}, 100%, 50%)`;
   } else {
     document.querySelector("#indicator").classList.add("hidden");
-    document.querySelector("#indicator").style.backgroundImage = ""
-    document.querySelector("#indicator").style.background = ""
-    document.querySelector("#indicator").style.backgroundColor = ""
+    document.querySelector("#indicator").style.backgroundImage = "";
+    document.querySelector("#indicator").style.background = "";
+    document.querySelector("#indicator").style.backgroundColor = "";
   }
+
+  // Set a new timeout to hide the element after 10 seconds
+  timeoutId = setTimeout(() => {
+    document.querySelector("#indicator").classList.add("hidden");
+    document.querySelector("#indicator").style.backgroundImage = "";
+    document.querySelector("#indicator").style.background = "";
+    document.querySelector("#indicator").style.backgroundColor = "";
+  }, 10000);
 });
 
 function createPayload(powerState) {
