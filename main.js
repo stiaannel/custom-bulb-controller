@@ -64,8 +64,6 @@ ipcMain.on('powerToggle', (event, args) => {
   });
 });
 
-
-
 ipcMain.on('monitor', (event, args) => {
   flag = false
   colors = [310,10,254,154,285,323]
@@ -91,34 +89,6 @@ ipcMain.on('monitor', (event, args) => {
 ipcMain.on('break', (event, args) => {
   flag = true
 });
-
-// ipcMain.on('spectrum', (event, args) => {
-//   // Select the correct device
-//   office = client.getDevice({ host: args.ip }).then((device) => {
-//     device.setPowerState(true); // Ensure the device is on
-
-//     // Spectrum Cycle
-//     for (let i = 0; i <= 180; i++) {
-//       console.log('running')
-//       // if (i = 0) bak = 0;
-//       let payload = {
-//         on_off: true, // false to turn off
-//         brightness: 100,
-//         hue: i * 2, //0-360 INDEX is the hue payload for the bulb
-//         saturation: 100, // 0-100
-//         color_temp: 0, // 2640 - 9000 Red -- Blue 6000 = Hosp white // ! SHOULD BE 0 IF YOU WANT COLOR OUTPUT!
-//         transition_period: 100
-//       }
-//       device.lighting.setLightState(payload).then(
-//         (out) => {
-//           console.count(out);
-//           bak++
-//           win.webContents.send('color_changed', bak * 2)
-//         }
-//       );
-//     }
-//   });
-// });
 
 function runSpectrumCycle(device) {
 
@@ -153,7 +123,6 @@ function runSpectrumCycle(device) {
 
   setLightStateAndAdvance(); // Start the loop
 }
-
 
 ipcMain.on('spectrum', (event, args) => {
   // Select the correct device
