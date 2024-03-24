@@ -38,6 +38,16 @@ document.getElementById('spectrum').addEventListener('click', () => {
   ipcRenderer.send('spectrum', createPayload(ip));
 })
 
+document.getElementById('candlelight').addEventListener('click', () => {
+  ip = document.getElementById("device").value
+  ipcRenderer.send('candle', createPayload(ip));
+})
+
+document.getElementById('fireplace').addEventListener('click', () => {
+  ip = document.getElementById("device").value
+  ipcRenderer.send('fire', createPayload(ip));
+})
+
 document.getElementById('powerToggle').addEventListener('click', () => {
   state = document.getElementById('powerToggle').checked
   ip = document.getElementById("device").value

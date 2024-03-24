@@ -5,13 +5,14 @@ const client = new Client();
 // var robot = require("robotjs");
 
 let win, flag, candle, fire, spectrum_flg = false, spec_i = 0;
+let candle_flag = false, fire_flag = false;
 
 function createWindow () {
   win = new BrowserWindow({
     width: 400,
-    height: 350,
+    height: 375,
     minWidth: 400,
-    minHeight: 250,
+    minHeight: 375,
     icon: "./assets/favicon.png",
     // transparent: true,
     frame: false,
@@ -64,34 +65,11 @@ ipcMain.on('powerToggle', (event, args) => {
   });
 });
 
-ipcMain.on('monitor', (event, args) => {
-  flag = false
-  colors = [310,10,254,154,285,323]
-  var interval = setInterval(() => {
-    if (flag) {clearInterval(interval)}
-    col = colors[Math.floor(Math.random() * colors.length)]
-    office = client.getDevice({ host: args.ip }).then((device) => {
-      let payload = {
-        on_off: true, // false to turn off
-        brightness: 100,
-        hue: col, //0-360
-        saturation: 100, // 0-100
-        color_temp: 0, // 2640 - 9000 Red -- Blue 6000 = Hosp white // ! SHOULD BE 0 IF YOU WANT COLOR OUTPUT!
-        transition_period: 0
-      }
-      device.lighting.setLightState(payload)
-    });
-  }, 1000)
-  // var hex = robot.getPixelColor(mouse.x, mouse.y);
-  // console.log("#" + hex + " at x:" + mouse.x + " y:" + mouse.y);
-});
-
 ipcMain.on('break', (event, args) => {
   flag = true
 });
 
 function runSpectrumCycle(device) {
-
   function setLightStateAndAdvance() {
     if (!spectrum_flg) return; // Exit the loop if spectrum function is stopped
 
@@ -141,6 +119,37 @@ ipcMain.on('spectrum', (event, args) => {
   });
 });
 
+ipcMain.on('candle', (event, args) => {
+  // Select the correct device
+  handleComment('info', `Candle cycle called on ${args.ip}`);
+  office = client.getDevice({ host: args.ip }).then((device) => {
+    device.setPowerState(true); // Ensure the device is on
+
+    if (!candle_flag) {
+      candle_flag = true;
+      simulateCandlelight(device);
+    } else {
+      candle_flag = false;
+    }
+  });
+});
+
+ipcMain.on('fire', (event, args) => {
+  // Select the correct device
+  handleComment('info', `Fire cycle called on ${args.ip}`);
+  office = client.getDevice({ host: args.ip }).then((device) => {
+    device.setPowerState(true); // Ensure the device is on
+
+    if (!fire_flag) {
+      fire_flag = true;
+      simulateCampfire(device);
+    } else {
+      fire_flag = false;
+    }
+  });
+});
+
+
 ipcMain.on('close', (event) => {
   app.quit();
 });
@@ -155,4 +164,68 @@ ipcMain.on('brightness_update', (e, args) => {
 const colors = {
   candle: [],
   fireplace: []
+}
+
+// Function to handle candle effect
+function simulateCandlelight(device) {
+  console.log("running candlesim");
+  // Check if candle effect is still required
+  if (candle_flag) {
+    let brightness = Math.floor(Math.random() * 50) + 50;
+    let transition = Math.floor(Math.random() * 1000) + 200;
+    // keeping the hue in the candlelight colour range
+
+    let hue = Math.floor(Math.random() * 30) + 30; // Generate random hue for flickering effect
+    let payload = {
+      on_off: true,
+      brightness: brightness, // Adjust brightness to create a dim effect
+      hue: 40, // Since candlelight doesn't change hue much, set it to a default value
+      saturation: 100, // Saturation can remain constant
+      color_temp: 0, // Warm color temperature for candlelight
+      transition_period: transition // Transition period for smooth effect
+    };
+
+    device.lighting.setLightState(payload).then(() => {
+      // Additional code if needed
+      // After setting light state, check if candle effect should continue
+      if (candle_flag) {
+        simulateCandlelight(device); // Continue candle effect
+      } else {
+        // If candle flag is false, reset light state or perform other actions
+      }
+    });
+  } else {
+    // Reset light state or perform other actions if candle flag is false
+  }
+}
+
+// Function to handle campfire effect
+function simulateCampfire(device) {
+  // Check if campfire effect is still required
+  if (fire_flag) {
+    let hue = Math.floor(Math.random() * 35) + 15; // Generate random hue for flickering effect
+    let brightness = Math.floor(Math.random() * 70) + 30; // Adjust brightness for flickering effect
+    let transition = Math.floor(Math.random() * 1000) + 200; // Generate random transition period for flickering effect
+
+    let payload = {
+      on_off: true,
+      brightness: brightness, // Adjust brightness for flickering effect
+      hue: hue, // Vary hue for flickering effect
+      saturation: 100, // Saturation can remain constant
+      color_temp: 0, // Warm color temperature for campfire
+      transition_period: transition // Transition period for smooth effect
+    };
+
+    device.lighting.setLightState(payload).then(() => {
+      // Additional code if needed
+      // After setting light state, check if campfire effect should continue
+      if (fire_flag) {
+        simulateCampfire(device); // Continue campfire effect
+      } else {
+        // If fire flag is false, reset light state or perform other actions
+      }
+    });
+  } else {
+    // Reset light state or perform other actions if fire flag is false
+  }
 }
